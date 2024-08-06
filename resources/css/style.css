@@ -1,0 +1,52 @@
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+
+
+footer {
+    background-color: #f0f0f0;
+    padding: 20px;
+}
+
+.footer__social__apps__list i {
+    color: #a30000;
+    font-size: 20px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.footer__social__apps__list {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Scala il contenuto del div al doppio della dimensione originale */
+#4c3f56bd-a451-4472-adb9-c6d0c738e29d {
+    transform: scale(2);
+    /* Scala il contenuto al doppio della dimensione originale */
+    transform-origin: top left;
+    /* Imposta l'origine della trasformazione */
+}
+
+@media (min-width: 992px) {
+    .recensioni {
+        transform: scale(1.5);
+        transform-origin: top left;
+        transform-box: border-box;
+        width: 50%;
+    }
+}
