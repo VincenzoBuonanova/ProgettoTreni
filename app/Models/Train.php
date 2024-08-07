@@ -23,12 +23,15 @@ class Train extends Model
         'arrival_time' => 'datetime',
     ];
 
+
     public function getDisruptionStatusAttribute()
     {
-        if ($this->disruption > 10) {
-            return $this->disruption . ' minutes late';
-        } elseif ($this->disruption < 0) {
-            return 'Early by ' . abs($this->disruption) . ' minutes';
+        $disruption = (int) $this->disruption; // Forza la conversione a numero intero
+
+        if ($disruption > 10) {
+            return $disruption . ' minutes late';
+        } elseif ($disruption < 0) {
+            return 'Early by ' . abs($disruption) . ' minutes';
         } else {
             return 'On time';
         }

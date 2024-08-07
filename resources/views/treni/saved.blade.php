@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Treni Salvati</title>
-</head>
-<body>
+<x-layout>
     <h1>Treni Salvati</h1>
     <button onclick="location.href='{{ route('trains.index') }}'">Visualizza Treni in Circolazione</button>
     <form method="GET" action="{{ route('trains.saved') }}">
@@ -24,8 +17,10 @@
             </li>
         @endforeach
     </ul>
-</body>
-</html>
+
+
+
+</x-layout>
 
 
 

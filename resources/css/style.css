@@ -3,8 +3,7 @@ table {
     border-collapse: collapse;
 }
 
-th,
-td {
+th, td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
@@ -13,7 +12,6 @@ td {
 th {
     background-color: #f2f2f2;
 }
-
 
 
 footer {
@@ -34,14 +32,6 @@ footer {
     gap: 10px;
 }
 
-/* Scala il contenuto del div al doppio della dimensione originale */
-#4c3f56bd-a451-4472-adb9-c6d0c738e29d {
-    transform: scale(2);
-    /* Scala il contenuto al doppio della dimensione originale */
-    transform-origin: top left;
-    /* Imposta l'origine della trasformazione */
-}
-
 @media (min-width: 992px) {
     .recensioni {
         transform: scale(1.5);
@@ -49,4 +39,8 @@ footer {
         transform-box: border-box;
         width: 50%;
     }
+}
+
+.logo {
+    width: 160px;
 }
