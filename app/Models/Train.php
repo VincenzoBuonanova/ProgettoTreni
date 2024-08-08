@@ -5,35 +5,27 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
 class Train extends Model
 {
     use HasFactory;
 
+    protected $table = 'trains';
+
+    // Campi che possono essere riempiti in massa
     protected $fillable = [
-        'train_number',
-        'departure_station',
-        'departure_time',
-        'arrival_station',
-        'arrival_time',
-        'disruption',
+        'TrainNumber',
+        'DepartureStationDescription',
+        'DepartureDate',
+        'ArrivalStationDescription',
+        'ArrivalDate',
+        'DelayAmount'
     ];
 
+    // Cast dei campi datetime
     protected $casts = [
-        'departure_time' => 'datetime',
-        'arrival_time' => 'datetime',
+        'DepartureDate' => 'datetime',
+        'ArrivalDate' => 'datetime',
+        'saved_at' => 'datetime',
     ];
-
-
-    public function getDisruptionStatusAttribute()
-    {
-        $disruption = (int) $this->disruption; // Forza la conversione a numero intero
-
-        if ($disruption > 10) {
-            return $disruption . ' minutes late';
-        } elseif ($disruption < 0) {
-            return 'Early by ' . abs($disruption) . ' minutes';
-        } else {
-            return 'On time';
-        }
-    }
 }

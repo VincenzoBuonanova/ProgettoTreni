@@ -1,48 +1,39 @@
 <x-layout>
-    <h1>Treni Salvati</h1>
-    <button onclick="location.href='{{ route('trains.index') }}'">Visualizza Treni in Circolazione</button>
-    <form method="GET" action="{{ route('trains.saved') }}">
-        <label for="date">Filtra per Data:</label>
-        <input type="date" id="date" name="date" value="{{ request('date') }}">
-        <button type="submit">Filtra</button>
-    </form>
-    <ul>
-        @foreach ($trains as $train)
-            <li>
-                <p>Numero Treno: {{ $train->train_number }}</p>
-                <p>Partenza: {{ $train->departure_station }} alle {{ $train->departure_time }}</p>
-                <p>Arrivo: {{ $train->arrival_station }} alle {{ $train->arrival_time }}</p>
-                <p>Ritardo: {{ $train->delay }} minuti</p>
-                <p>Salvato il: {{ $train->created_at }}</p>
-            </li>
-        @endforeach
-    </ul>
-
-
-
+    <div class="container py-5">
+        <div class="row justify-content-center align-items-center">
+            <div class="col-6">
+                <h1>Treni Salvati</h1>
+            </div>
+            <div class="col-6 text-end">
+                {{-- <form method="GET" action="{{ route('trains.saved') }}">
+                    <input type="date" name="date" value="{{ $date ?? '' }}">
+                    <button type="submit" class="btn btn-outline-primary">Filtra per data</button>
+                </form> --}}
+            </div>
+        </div>
+        <div class="col-12">
+            <table id="trains-table">
+                <thead>
+                </thead>
+                <tbody id="trains-table-body">
+                    {{-- @foreach ($savedTrains as $train)
+                    <tr>
+                        <td>{{ $train->train_number }}</td>
+                        <td>{{ $train->departure_station }} <strong>{{ $train->departure_date }}</strong> <i class="fa-solid fa-arrow-right"></i> {{ $train->arrival_station }} <strong>{{ $train->arrival_date }}</strong></td>
+                        <td>
+                            @if ($train->delay_amount < 0)
+                            <i class="fa-solid fa-circle" style="color: green;"></i> In anticipo
+                            @elseif ($train->delay_amount < 10)
+                            <i class="fa-solid fa-circle" style="color: green;"></i> In orario
+                            @else
+                            <i class="fa-solid fa-circle" style="color: red;"></i> Ritardo {{ $train->delay_amount }} minuti
+                            @endif
+                        </td>
+                        <td>{{ $train->saved_at }}</td>
+                    </tr>
+                    @endforeach --}}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </x-layout>
-
-
-
-
-
-
-    {{-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Treni Salvati</title>
-</head>
-<body>
-    <h1>Treni Salvati</h1>
-    <ul>
-        @foreach ($trains as $train)
-            <li>
-                Treno {{ $train->train_number }} da {{ $train->departure_station }} ({{ $train->departure_time }}) a {{ $train->arrival_station }} ({{ $train->arrival_time }})
-                - {{ $train->disruption > 10 ? "Ritardo: {$train->disruption} minuti" : $train->disruption < 0 ? "In anticipo: " . abs($train->disruption) . " minuti" : 'In orario' }}
-            </li>
-        @endforeach
-    </ul>
-</body>
-</html> --}}

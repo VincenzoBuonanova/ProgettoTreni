@@ -1,5 +1,5 @@
 <x-layout>
-    <div class="container">
+    <div class="container noRefresh">
         <div class="row my-5 justify-content-center">
             <div class="col-12 col-md-10 text-center">
                 <h1 class="display-2 text-danger">Progetto colloquio tecnico</h1>

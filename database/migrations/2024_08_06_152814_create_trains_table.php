@@ -4,26 +4,28 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateTrainsTable extends Migration
 {
     public function up()
     {
         Schema::create('trains', function (Blueprint $table) {
             $table->id();
-            $table->string('train_number');
-            $table->string('departure_station');
-            $table->string('arrival_station');
-            $table->timestamp('departure_time');
-            $table->timestamp('arrival_time');
-            $table->integer('disruption')->default(0); // minuti di ritardo
-            // $table->integer('delay')->nullable();
+            $table->string('TrainNumber');
+            $table->string('DepartureStationDescription');
+            $table->datetime('DepartureDate');  // Cambiato a datetime
+            $table->string('ArrivalStationDescription');
+            $table->datetime('ArrivalDate');  // Cambiato a datetime
+            $table->integer('DelayAmount')->nullable();  // Cambiato il nome per evitare il punto
+            $table->timestamp('saved_at')->useCurrent();
             $table->timestamps();
+
+            // Constraint univoco su numero treno e data di partenza
+            $table->unique(['TrainNumber', 'DepartureDate']);
         });
     }
 
-
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('trains');
     }
-};
+}
