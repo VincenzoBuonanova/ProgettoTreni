@@ -17,14 +17,14 @@
             </div>
             <div class="col-12">
                 <table id="trains-table">
-                    <thead>
-                        {{-- <tr>
+                    {{-- <thead>
+                        <tr>
                             <th>Numero Treno</th>
                             <th>Stazione di Partenza, Orario, Arrivo, Orario</th>
                             <th>Ritardo?</th>
                             <th>Salva il Treno</th>
-                        </tr> --}}
-                    </thead>
+                        </tr>
+                    </thead> --}}
                     <tbody id="trains-table-body">
                         {{-- tabella coi treni aggiornata al minuto --}}
                     </tbody>

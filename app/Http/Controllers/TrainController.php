@@ -115,24 +115,101 @@ class TrainController extends Controller
                 'delay_amount' => $data['DelayAmount'] ?? null,
                 'saved_at_date' => $currentDate,
                 'saved_at_time' => $currentTime
-            ]
-        );
+                ]
+            );
 
-        return response()->json([
-            'success' => 'Treno salvato con successo',
-            'train' => $train
-        ],
+            return response()->json([
+                'success' => 'Treno salvato con successo',
+                'train' => $train
+            ],
             200
         );
     }
 
 
     // todo Elenco treni salvati
-    public function trainsSaved()
+    // public function getSavedTrains()
+    // {
+    //     $trains = Train::orderBy('saved_at_date', 'desc')
+    //     ->orderBy('departure_date', 'desc')
+    //     ->get();
+    //     return view('treni.saved', [
+    //         'trains' => $trains
+    //     ]);
+    // }
+
+    // public function getSavedTrains()
+    // {
+    //     $response = Http::get('https://italoinviaggio.italotreno.it/api/TreniInCircolazioneService');
+    //     $data = $response->json();
+
+    //     if (isset($data['TrainSchedules'])) {
+    //         $updatedTrains = collect($data['TrainSchedules'])->keyBy('TrainNumber');
+
+    //         $trains = Train::orderBy('saved_at_date', 'desc')
+    //             ->orderBy('departure_date', 'desc')
+    //             ->get()
+    //             ->map(function ($train) use ($updatedTrains) {
+    //                 $updatedTrain = $updatedTrains->get($train->train_number);
+
+    //                 if ($updatedTrain) {
+    //                     $train->delay_amount = $updatedTrain['Distruption']['DelayAmount'] ?? null;
+    //                     $train->save();
+    //                 }
+
+    //                 return $train;
+    //             });
+
+    //         return view('treni.saved', ['trains' => $trains]);
+    //     }
+    //     return view('treni.saved', ['trains' => []]);
+    // }
+
+    public function getSavedTrains(Request $request)
     {
-        $trains = Train::all();
-        return view('treni.saved', [
-            'trains' => $trains
-        ]);
+        $response = Http::get('https://italoinviaggio.italotreno.it/api/TreniInCircolazioneService');
+        $data = $response->json();
+
+        if (isset($data['TrainSchedules'])) {
+            $updatedTrains = collect($data['TrainSchedules'])->keyBy('TrainNumber');
+
+            $trains = Train::orderBy('saved_at_date', 'desc')
+            ->orderBy('departure_date', 'desc')
+            ->get()
+                ->map(function ($train) use ($updatedTrains) {
+                    $updatedTrain = $updatedTrains->get($train->train_number);
+
+                    if ($updatedTrain) {
+                        $train->delay_amount = $updatedTrain['Distruption']['DelayAmount'] ?? null;
+                        $train->save();
+                    }
+
+                    return $train;
+                });
+
+            // Se è una richiesta AJAX, restituisci i dati JSON
+            if ($request->ajax()) {
+                return response()->json([
+                    'trains' => $trains->map(function ($train) {
+                        return [
+                            'train_number' => $train->train_number,
+                            'departure_station_description' => $train->departure_station_description,
+                            'departure_date' => $train->departure_date,
+                            'arrival_station_description' => $train->arrival_station_description,
+                            'arrival_date' => $train->arrival_date,
+                            'saved_at_date' => $train->saved_at_date,
+                            'saved_at_time' => $train->saved_at_time,
+                            'delay_amount' => $train->delay_amount
+                        ];
+                    })
+                ]);
+            }
+
+            // Renderizza la vista se non è una richiesta AJAX
+            return view('treni.saved', ['trains' => $trains]);
+        }
+
+        // Se non ci sono dati, ritorna comunque la vista vuota
+        return view('treni.saved', ['trains' => []]);
     }
 }
