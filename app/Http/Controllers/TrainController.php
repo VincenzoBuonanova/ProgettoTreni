@@ -15,24 +15,8 @@ class TrainController extends Controller
         return view('home');
     }
 
-    // todo INDEX funzionante con delay
-    // public function index()
-    // {
-    //     $response = Http::get('https://italoinviaggio.italotreno.it/api/TreniInCircolazioneService');
 
-    //     $data = json_decode($response, true);
-    //     $lastUpdate = $data['LastUpdate'];
-
-    //     $trains = array_map(function ($train) {
-    //         $delayAmount = $train['Distruption']['DelayAmount'] ?? null;
-    //         return array_merge($train, ['DelayAmount' => $delayAmount]);
-    //     }, $data['TrainSchedules']);
-
-    //     return view('treni.index', [
-    //         'trains' => $trains,
-    //         'lastUpdate' => $lastUpdate
-    //     ]);
-    // }
+    // todo Elenco di tutti i treni in circolazione
     public function index()
     {
         $response = Http::get('https://italoinviaggio.italotreno.it/api/TreniInCircolazioneService');
@@ -61,25 +45,8 @@ class TrainController extends Controller
         ]);
     }
 
-    // public function refreshTrainsData()
-    // {
-    //     $response = Http::get('https://italoinviaggio.italotreno.it/api/TreniInCircolazioneService');
-    //     $data = $response->json();
 
-    //     if (isset($data['TrainSchedules']) && isset($data['LastUpdate'])) {
-    //         $trains = array_map(function ($train) {
-    //             $delayAmount = $train['Distruption']['DelayAmount'] ?? null;
-    //             return array_merge($train, ['DelayAmount' => $delayAmount]);
-    //         }, $data['TrainSchedules']);
-
-    //         return response()->json([
-    //             'trains' => $trains,
-    //             'lastUpdate' => $data['LastUpdate']
-    //         ]);
-    //     } else {
-    //         return response()->json(['error' => 'Dati non disponibili'], 500);
-    //     }
-    // }
+    // todo Funzione per refresharli
     public function refreshTrainsData()
     {
         $response = Http::get('https://italoinviaggio.italotreno.it/api/TreniInCircolazioneService');
@@ -112,16 +79,16 @@ class TrainController extends Controller
     }
 
 
-
-    public function save(Request $request)
+    // todo Funzione per salvare un treno
+    public function saveTrain(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'TrainNumber' => 'required|string|max:255',
             'DepartureStationDescription' => 'required|string|max:255',
-            'DepartureDate' => 'required|date_format:H:i:s',
+            'DepartureDate' => 'required|date_format:H:i',
             'ArrivalStationDescription' => 'required|string|max:255',
-            'ArrivalDate' => 'required|date_format:H:i:s',
-            'TrainSchedules.0.Distruption.DelayAmount' => 'nullable|integer',
+            'ArrivalDate' => 'required|date_format:H:i',
+            'DelayAmount' => 'nullable|integer',
         ]);
 
         if ($validator->fails()) {
@@ -132,16 +99,22 @@ class TrainController extends Controller
 
         $data = $validator->validated();
 
+        $currentDate = now()->format('Y-m-d');
+        $currentTime = now()->format('H:i');
+
+        // dd($request->all());
         $train = Train::updateOrCreate(
             [
-                'TrainNumber' => $data['TrainNumber'],
-                'DepartureDate' => $data['DepartureDate'],
+                'train_number' => $data['TrainNumber'],
+                'departure_date' => $data['DepartureDate'],
             ],
             [
-                'DepartureStationDescription' => $data['DepartureStationDescription'],
-                'ArrivalStationDescription' => $data['ArrivalStationDescription'],
-                'ArrivalDate' => $data['ArrivalDate'],
-                'DelayAmount' => $data['TrainSchedules.0.Distruption.DelayAmount'] ?? null,
+                'departure_station_description' => $data['DepartureStationDescription'],
+                'arrival_station_description' => $data['ArrivalStationDescription'],
+                'arrival_date' => $data['ArrivalDate'],
+                'delay_amount' => $data['DelayAmount'] ?? null,
+                'saved_at_date' => $currentDate,
+                'saved_at_time' => $currentTime
             ]
         );
 
@@ -154,6 +127,7 @@ class TrainController extends Controller
     }
 
 
+    // todo Elenco treni salvati
     public function trainsSaved()
     {
         $trains = Train::all();

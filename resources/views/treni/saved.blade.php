@@ -5,35 +5,31 @@
                 <h1>Treni Salvati</h1>
             </div>
             <div class="col-6 text-end">
-                {{-- <form method="GET" action="{{ route('trains.saved') }}">
-                    <input type="date" name="date" value="{{ $date ?? '' }}">
-                    <button type="submit" class="btn btn-outline-primary">Filtra per data</button>
-                </form> --}}
+                <h5 id="last-update">Ultimo aggiornamento: {{ $lastUpdate ?? 'N/A' }}</h5>
             </div>
-        </div>
-        <div class="col-12">
-            <table id="trains-table">
-                <thead>
-                </thead>
-                <tbody id="trains-table-body">
-                    {{-- @foreach ($savedTrains as $train)
-                    <tr>
-                        <td>{{ $train->train_number }}</td>
-                        <td>{{ $train->departure_station }} <strong>{{ $train->departure_date }}</strong> <i class="fa-solid fa-arrow-right"></i> {{ $train->arrival_station }} <strong>{{ $train->arrival_date }}</strong></td>
-                        <td>
-                            @if ($train->delay_amount < 0)
-                            <i class="fa-solid fa-circle" style="color: green;"></i> In anticipo
-                            @elseif ($train->delay_amount < 10)
-                            <i class="fa-solid fa-circle" style="color: green;"></i> In orario
-                            @else
-                            <i class="fa-solid fa-circle" style="color: red;"></i> Ritardo {{ $train->delay_amount }} minuti
-                            @endif
-                        </td>
-                        <td>{{ $train->saved_at }}</td>
-                    </tr>
-                    @endforeach --}}
-                </tbody>
-            </table>
+            <div class="row py-4">
+                <div class="col-6">
+                    <a href="{{ route('trains.saved') }}"><button class="btn btn-outline-danger">Elenco treni salvati</button></a>
+                </div>
+                <div class="col-6 text-end">
+                    <a href="#"><button class="btn btn-outline-primary">Salva tutti i treni</button></a>
+                </div>
+            </div>
+            <div class="col-12">
+                <table id="saved-trains-table">
+                    <thead>
+                        {{-- <tr>
+                            <th>Numero Treno</th>
+                            <th>Stazione di Partenza, Orario, Arrivo, Orario</th>
+                            <th>Ritardo?</th>
+                            <th>Salva il Treno</th>
+                        </tr> --}}
+                    </thead>
+                    <tbody id="saved-trains-table-body">
+                        {{-- tabella coi treni aggiornata al minuto --}}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </x-layout>

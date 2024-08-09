@@ -11,17 +11,17 @@ class CreateTrainsTable extends Migration
     {
         Schema::create('trains', function (Blueprint $table) {
             $table->id();
-            $table->string('TrainNumber');
-            $table->string('DepartureStationDescription');
-            $table->time('DepartureDate');
-            $table->string('ArrivalStationDescription');
-            $table->time('ArrivalDate');
-            $table->integer('DelayAmount')->nullable();
-            $table->date('saved_at_date')->default(DB::raw('CURRENT_DATE'));
-            $table->time('saved_at_time')->default(DB::raw('CURRENT_TIME'));
+            $table->string('train_number');
+            $table->string('departure_station_description');
+            $table->time('departure_date');
+            $table->string('arrival_station_description');
+            $table->time('arrival_date');
+            $table->integer('delay_amount')->nullable();
+            $table->date('saved_at_date')->nullable();
+            $table->time('saved_at_time')->nullable();
             $table->timestamps();
 
-            $table->unique(['TrainNumber', 'saved_at_date']);
+            $table->unique(['train_number', 'saved_at_date']);
         });
     }
 
