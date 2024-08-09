@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 class CreateTrainsTable extends Migration
 {
@@ -12,15 +13,15 @@ class CreateTrainsTable extends Migration
             $table->id();
             $table->string('TrainNumber');
             $table->string('DepartureStationDescription');
-            $table->datetime('DepartureDate');  // Cambiato a datetime
+            $table->time('DepartureDate');
             $table->string('ArrivalStationDescription');
-            $table->datetime('ArrivalDate');  // Cambiato a datetime
-            $table->integer('DelayAmount')->nullable();  // Cambiato il nome per evitare il punto
-            $table->timestamp('saved_at')->useCurrent();
+            $table->time('ArrivalDate');
+            $table->integer('DelayAmount')->nullable();
+            $table->date('saved_at_date')->default(DB::raw('CURRENT_DATE'));
+            $table->time('saved_at_time')->default(DB::raw('CURRENT_TIME'));
             $table->timestamps();
 
-            // Constraint univoco su numero treno e data di partenza
-            $table->unique(['TrainNumber', 'DepartureDate']);
+            $table->unique(['TrainNumber', 'saved_at_date']);
         });
     }
 
