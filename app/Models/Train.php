@@ -12,6 +12,7 @@ class Train extends Model
     protected $table = 'trains';
 
     protected $fillable = [
+        'id',
         'train_number',
         'departure_station_description',
         'departure_date',

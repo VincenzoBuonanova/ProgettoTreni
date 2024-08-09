@@ -1,9 +1,9 @@
 <footer>
     <div class="container-fluid">
-        <div class="row justify-content-center text-center">
+        <div class="row justify-content-evenly text-center">
 
             {{-- todo Social Apps inizio --}}
-            <div class="col-12 col-lg-4 footer__social__container mb-5 mt-2">
+            <div class="col-12 col-lg-3 footer__social__container mb-5 mt-2 pe-5">
                 <p class="fs-5">Segui Italo sui Social</p>
                 <div class="footer__social__apps__list">
                     <a href="https://www.facebook.com/ItaloTreno" target="_blank" class="footer__social__link">
@@ -29,7 +29,7 @@
             {{-- todo Social Apps fine --}}
 
             {{-- todo Scarica l'app inizio--}}
-            <div class="col-12 col-lg-4 mb-5">
+            <div class="col-12 col-lg-3 mb-5">
                 <p class="fs-5">Scarica l'app Italo Treno</p>
                 <div class="footer__social__apps__list">
                     <a href="https://apps.apple.com/it/app/italo-treno/id804056898" target="_blank">
@@ -46,7 +46,7 @@
             {{-- todo Scarica l'app fine --}}
 
             {{-- todo Recensioni inizio --}}
-            <div class="col-12 col-lg-4 d-flex justify-content-center align-items-center mb-5">
+            <div class="col-12 col-lg-3 d-flex justify-content-center align-items-center mb-5">
                 <div id="4c3f56bd-a451-4472-adb9-c6d0c738e29d" class="recensioni"></div>
                 <script async="async" charset="utf-8" src="https://widgets.rr.skeepers.io/generated/bee19788-bdd7-6824-591a-0d49fc002536/4c3f56bd-a451-4472-adb9-c6d0c738e29d.js"></script>
             </div>

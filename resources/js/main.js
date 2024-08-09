@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <td>${train.DepartureStationDescription} <strong>${train.DepartureDate}</strong> <i class="fa-solid fa-arrow-right"></i> ${train.ArrivalStationDescription} <strong>${train.ArrivalDate}</strong></td>
                                 <td>${delayText}</td>
                                 <td>
-                                    <button>Dettagli</button>
-                                    <button onclick='saveTrain(${JSON.stringify(train)})'>Salva</button>
+                                    <i class="fa-solid fa-circle-info fa-xl p-2" style="cursor: pointer; color: aqua"></i>
+                                    <i class="fa-regular fa-floppy-disk fa-xl p-2" onclick='saveTrain(${JSON.stringify(train)})' style="cursor: pointer; color: green"></i>
                                 </td>
                             `;
                         tableBody.appendChild(row);
@@ -43,6 +43,8 @@ document.addEventListener('DOMContentLoaded', function () {
         setInterval(refreshTrainsData, 60000);
         refreshTrainsData();
 
+
+        //todo Funzione per salvare
         window.saveTrain = function (train) {
             const trainPayload = {
                 TrainNumber: train.TrainNumber,
@@ -85,12 +87,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-
-
 //! Script per la schermata treni salvati
 document.addEventListener('DOMContentLoaded', function () {
     const url = window.location.pathname;
     if (url === '/trains/saved') {
+
         function refreshSavedTrainsData() {
             fetch('/trains/saved', {
                 method: 'GET',
@@ -125,32 +126,71 @@ document.addEventListener('DOMContentLoaded', function () {
                             delayText = `<i class="fa-solid fa-circle" style="color: red;"></i> Ritardo ${delayAmount} minuti`;
                         }
 
+                        const formatTime = (time) => new Date(`1970-01-01T${time}Z`).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                        <td style="color: #a30000;">
-                            <i class="fa-solid fa-train fa-xl"></i> Italo ${train.train_number}
-                        </td>
-                        <td>
-                            ${train.departure_station_description} <strong>${train.departure_date}</strong>
-                            <i class="fa-solid fa-arrow-right"></i>
-                            ${train.arrival_station_description} <strong>${train.arrival_date}</strong>
-                        </td>
-                        <td>
-                            Salvato il ${new Date(train.saved_at_date).toLocaleDateString()} alle ore ${new Date(train.saved_at_time).toLocaleTimeString()}
-                        </td>
-                        <td>
-                            ${delayText}
-                        </td>
-                        <td>
-                            <button>Dettagli</button>
-                            <!-- Aggiungi altre funzionalità qui, come un pulsante di eliminazione se necessario -->
-                        </td>
-                    `;
+                <td style="color: #a30000;">
+                    <i class="fa-solid fa-train fa-xl"></i> Italo ${train.train_number}
+                </td>
+                <td>
+                    ${train.departure_station_description} <strong>${formatTime(train.departure_date)}</strong>
+                    <i class="fa-solid fa-arrow-right"></i>
+                    ${train.arrival_station_description} <strong>${formatTime(train.arrival_date)}</strong>
+                </td>
+                <td>
+                    Salvato il ${new Date(train.saved_at_date).toLocaleDateString('it-IT')} alle ore ${formatTime(train.saved_at_time)}
+                </td>
+                <td>
+                    ${delayText}
+                </td>
+                <td>
+                    <button>Dettagli</button>
+                    <span onclick="deleteTrain(${train.id})" style="cursor: pointer;"><i class="fa-regular fa-trash-can fa-lg"></i></span>
+                </td>
+            `;
                         tableBody.appendChild(row);
                     });
                 })
                 .catch(error => console.error('Errore nel fetch:', error));
         }
+
+
+        //todo Funzione per cancellare
+        window.deleteTrain = function (id) {
+            if (typeof id === 'undefined') {
+                console.error('ID del treno non definito.');
+                return;
+            }
+            console.log('ID del treno da eliminare:', id);
+            fetch(`/trains/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        console.error('Errore nella risposta del server:', data);
+                        throw new Error(data.message || 'Errore nella cancellazione');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('Treno eliminato con successo');
+                    refreshSavedTrainsData();
+                } else {
+                    alert('Errore nella cancellazione del treno');
+                }
+            })
+            .catch(error => {
+                console.error('Errore nella cancellazione:', error);
+            });
+        };
 
         setInterval(refreshSavedTrainsData, 60000);
         refreshSavedTrainsData();

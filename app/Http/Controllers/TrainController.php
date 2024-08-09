@@ -114,7 +114,7 @@ class TrainController extends Controller
                 'arrival_date' => $data['ArrivalDate'],
                 'delay_amount' => $data['DelayAmount'] ?? null,
                 'saved_at_date' => $currentDate,
-                'saved_at_time' => $currentTime
+                'saved_at_time' => $currentTime,
                 ]
             );
 
@@ -128,70 +128,36 @@ class TrainController extends Controller
 
 
     // todo Elenco treni salvati
-    // public function getSavedTrains()
-    // {
-    //     $trains = Train::orderBy('saved_at_date', 'desc')
-    //     ->orderBy('departure_date', 'desc')
-    //     ->get();
-    //     return view('treni.saved', [
-    //         'trains' => $trains
-    //     ]);
-    // }
-
-    // public function getSavedTrains()
-    // {
-    //     $response = Http::get('https://italoinviaggio.italotreno.it/api/TreniInCircolazioneService');
-    //     $data = $response->json();
-
-    //     if (isset($data['TrainSchedules'])) {
-    //         $updatedTrains = collect($data['TrainSchedules'])->keyBy('TrainNumber');
-
-    //         $trains = Train::orderBy('saved_at_date', 'desc')
-    //             ->orderBy('departure_date', 'desc')
-    //             ->get()
-    //             ->map(function ($train) use ($updatedTrains) {
-    //                 $updatedTrain = $updatedTrains->get($train->train_number);
-
-    //                 if ($updatedTrain) {
-    //                     $train->delay_amount = $updatedTrain['Distruption']['DelayAmount'] ?? null;
-    //                     $train->save();
-    //                 }
-
-    //                 return $train;
-    //             });
-
-    //         return view('treni.saved', ['trains' => $trains]);
-    //     }
-    //     return view('treni.saved', ['trains' => []]);
-    // }
-
     public function getSavedTrains(Request $request)
     {
         $response = Http::get('https://italoinviaggio.italotreno.it/api/TreniInCircolazioneService');
         $data = $response->json();
-
-        if (isset($data['TrainSchedules'])) {
+        if (isset($data['IsEmpty']) && $data['IsEmpty']) {
+            $filePath = resource_path('views/TreniInCircolazioneServiceStatico.json');
+            if (!file_exists($filePath)) {
+                return response()->json(['error' => 'File non trovato'], 404);
+            }
+            $json = file_get_contents($filePath);
+            $data = json_decode($json, true);
+        }
+        if (isset($data['TrainSchedules'] )) {
             $updatedTrains = collect($data['TrainSchedules'])->keyBy('TrainNumber');
-
             $trains = Train::orderBy('saved_at_date', 'desc')
             ->orderBy('departure_date', 'desc')
             ->get()
-                ->map(function ($train) use ($updatedTrains) {
-                    $updatedTrain = $updatedTrains->get($train->train_number);
-
-                    if ($updatedTrain) {
-                        $train->delay_amount = $updatedTrain['Distruption']['DelayAmount'] ?? null;
-                        $train->save();
-                    }
-
-                    return $train;
-                });
-
-            // Se è una richiesta AJAX, restituisci i dati JSON
+            ->map(function ($train) use ($updatedTrains) {
+                $updatedTrain = $updatedTrains->get($train->train_number);
+                if ($updatedTrain) {
+                    $train->delay_amount = $updatedTrain['Distruption']['DelayAmount'] ?? null;
+                    $train->save();
+                }
+                return $train;
+            });
             if ($request->ajax()) {
                 return response()->json([
                     'trains' => $trains->map(function ($train) {
                         return [
+                            'id' => $train->id,
                             'train_number' => $train->train_number,
                             'departure_station_description' => $train->departure_station_description,
                             'departure_date' => $train->departure_date,
@@ -204,12 +170,17 @@ class TrainController extends Controller
                     })
                 ]);
             }
-
-            // Renderizza la vista se non è una richiesta AJAX
             return view('treni.saved', ['trains' => $trains]);
         }
-
-        // Se non ci sono dati, ritorna comunque la vista vuota
         return view('treni.saved', ['trains' => []]);
+    }
+
+
+    // todo Funzione per eliminare un treno
+    public function deleteTrain($id)
+    {
+        $train = Train::findOrFail($id);
+        $train->delete();
+        return response()->json(['success' => true]);
     }
 }

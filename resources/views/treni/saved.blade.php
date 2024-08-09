@@ -24,42 +24,7 @@
             <div class="col-12">
                 <table id="saved-trains-table">
                     <tbody id="saved-trains-table-body">
-                        @forelse ($trains as $train)
-                            <tr>
-                                <td style="color: #a30000;">
-                                    <i class="fa-solid fa-train fa-xl"></i> Italo {{ $train->train_number }}
-                                </td>
-                                <td>
-                                    {{ $train->departure_station_description }}
-                                    <strong>{{ $train->departure_date }}</strong>
-                                    <i class="fa-solid fa-arrow-right"></i>
-                                    {{ $train->arrival_station_description }}
-                                    <strong>{{ $train->arrival_date }}</strong>
-                                </td>
-                                <td>
-                                    Salvato il {{ $train->created_at }} alle ore {{ $train->created_at->format('H:i') }}.
-                                </td>
-                                <td id="saved-delay-amount">
-                                    @if ($train->delay_amount < 0)
-                                        <i class="fa-solid fa-circle" style="color: green;"></i> In anticipo
-                                    @elseif ($train->delay_amount < 10)
-                                        <i class="fa-solid fa-circle" style="color: green;"></i> In orario
-                                    @else
-                                        <i class="fa-solid fa-circle" style="color: red;"></i> Ritardo {{ $train->delay_amount }} minuti
-                                    @endif
-                                </td>
-                                <td>
-                                    <button>Dettagli</button>
-                                    {{-- <button onclick='deleteTrain({{ $train->id }})'>Elimina</button> --}}
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="text-center">
-                                    Nessun treno salvato.
-                                </td>
-                            </tr>
-                        @endforelse
+                        {{-- tabella coi treni salvati --}}
                     </tbody>
                 </table>
             </div>
