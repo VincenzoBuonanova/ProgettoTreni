@@ -12,19 +12,11 @@
                     <a href="{{ route('trains.saved') }}"><button class="btn btn-outline-danger">Elenco treni salvati</button></a>
                 </div>
                 <div class="col-6 text-end">
-                    <a href="#"><button class="btn btn-outline-primary">Salva tutti i treni</button></a>
+                    <button class="btn btn-outline-primary save-all">Salva tutti i treni</button>
                 </div>
             </div>
             <div class="col-12">
                 <table id="trains-table">
-                    {{-- <thead>
-                        <tr>
-                            <th>Numero Treno</th>
-                            <th>Stazione di Partenza, Orario, Arrivo, Orario</th>
-                            <th>Ritardo?</th>
-                            <th>Salva il Treno</th>
-                        </tr>
-                    </thead> --}}
                     <tbody id="trains-table-body">
                         {{-- tabella coi treni aggiornata al minuto --}}
                     </tbody>
@@ -32,4 +24,29 @@
             </div>
         </div>
     </div>
+
+
+
+
+
+    {{-- modale per i treni --}}
+    <div class="modal fade" id="trainModal" tabindex="-1" aria-labelledby="trainModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="trainModalLabel">Dettagli treno</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="trainModalBody">
+                    {{-- dettagli fermate --}}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </x-layout>

@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <td>${train.DepartureStationDescription} <strong>${train.DepartureDate}</strong> <i class="fa-solid fa-arrow-right"></i> ${train.ArrivalStationDescription} <strong>${train.ArrivalDate}</strong></td>
                                 <td>${delayText}</td>
                                 <td>
-                                    <i class="fa-solid fa-circle-info fa-xl p-2" style="cursor: pointer; color: aqua"></i>
+                                    <i class="fa-solid fa-circle-info fa-xl p-2" style="cursor: pointer; color: aqua" onclick='showTrainDetails(${JSON.stringify(train)})'></i>
                                     <i class="fa-regular fa-floppy-disk fa-xl p-2" onclick='saveTrain(${JSON.stringify(train)})' style="cursor: pointer; color: green"></i>
                                 </td>
                             `;
@@ -43,17 +43,65 @@ document.addEventListener('DOMContentLoaded', function () {
         setInterval(refreshTrainsData, 60000);
         refreshTrainsData();
 
+        //todo funzione per modale dettagli
+        window.showTrainDetails = function (train) {
+            const modalTitle = document.getElementById('trainModalLabel');
+            const modalBody = document.getElementById('trainModalBody');
 
-        //todo Funzione per salvare
+            modalTitle.textContent = `Dettagli treno Italo ${train.TrainNumber}`;
+
+            let stationsHTML = '';
+            train.Stations.forEach(station => {
+                stationsHTML += `
+                    <tr>
+                        <td>${station.LocationDescription}</td>
+                        <td>${station.EstimatedArrivalTime}</td>
+                        <td>${station.ActualArrivalTime}</td>
+                        <td>${station.EstimatedDepartureTime}</td>
+                        <td>${station.ActualDepartureTime}</td>
+                    </tr>
+                `;
+            });
+
+            modalBody.innerHTML = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Stazione</th>
+                            <th>Arrivo Previsto</th>
+                            <th>Arrivo Effettivo</th>
+                            <th>Partenza Prevista</th>
+                            <th>Partenza Effettiva</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${stationsHTML}
+                    </tbody>
+                </table>
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('trainModal'));
+            modal.show();
+        };
+
+        //todo Funzione per salvare un treno
         window.saveTrain = function (train) {
-            const trainPayload = {
-                TrainNumber: train.TrainNumber,
-                DepartureStationDescription: train.DepartureStationDescription,
-                DepartureDate: train.DepartureDate,
-                ArrivalStationDescription: train.ArrivalStationDescription,
-                ArrivalDate: train.ArrivalDate,
-                DelayAmount: train.Distruption.DelayAmount
-            };
+            // const trainPayload = {
+            //     TrainNumber: train.TrainNumber,
+            //     DepartureStationDescription: train.DepartureStationDescription,
+            //     DepartureDate: train.DepartureDate,
+            //     ArrivalStationDescription: train.ArrivalStationDescription,
+            //     ArrivalDate: train.ArrivalDate,
+            //     DelayAmount: train.Distruption.DelayAmount
+
+                const trainPayload = {
+                    TrainNumber: train.TrainNumber,
+                    DepartureStationDescription: train.DepartureStationDescription,
+                    DepartureDate: train.DepartureDate,
+                    ArrivalStationDescription: train.ArrivalStationDescription,
+                    ArrivalDate: train.ArrivalDate,
+                    DelayAmount: train.Distruption ? train.Distruption.DelayAmount : null
+                };
 
             fetch('/trains/save', {
                 method: 'POST',
@@ -83,6 +131,42 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     }
+
+
+    //todo funzione per salvare tutti i treni
+    window.saveAllTrains = function () {
+        const tableBody = document.getElementById('trains-table-body');
+        const rows = tableBody.querySelectorAll('tr');
+
+        rows.forEach(row => {
+            const train = {
+                TrainNumber: row.querySelector('td:nth-child(1)').textContent.trim().replace('Italo ', ''),
+                DepartureStationDescription: row.querySelector('td:nth-child(2)').textContent.split(' ')[0],
+                DepartureDate: row.querySelector('td:nth-child(2)').querySelector('strong').textContent,
+                ArrivalStationDescription: row.querySelector('td:nth-child(2)').textContent.split(' ')[3],
+                ArrivalDate: row.querySelector('td:nth-child(2)').querySelectorAll('strong')[1].textContent,
+                DelayAmount: row.querySelector('td:nth-child(3)').textContent.includes('Ritardo')
+                    ? parseInt(row.querySelector('td:nth-child(3)').textContent.match(/\d+/)[0])
+                    : null
+
+                TrainNumber: train.TrainNumber,
+                DepartureStationDescription: train.DepartureStationDescription,
+                DepartureDate: train.DepartureDate,
+                ArrivalStationDescription: train.ArrivalStationDescription,
+                ArrivalDate: train.ArrivalDate,
+                DelayAmount: train.Distruption ? train.Distruption.DelayAmount : null
+            };
+
+            // Log per verificare i valori estratti
+            console.log('Train Data:', train);
+
+            saveTrain(train);
+        });
+    };
+
+
+    //todo evento del bottone "Salva tutti i treni"
+    document.querySelector('.save-all').addEventListener('click', saveAllTrains);
 });
 
 
@@ -119,25 +203,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
-            <td style="color: #a30000;">
-                <i class="fa-solid fa-train fa-xl"></i> Italo ${train.train_number}
-            </td>
-            <td>
-                ${train.departure_station_description} <strong>${formatTime(train.departure_date)}</strong>
-                <i class="fa-solid fa-arrow-right"></i>
-                ${train.arrival_station_description} <strong>${formatTime(train.arrival_date)}</strong>
-            </td>
-            <td>
-                Salvato il ${new Date(train.saved_at_date).toLocaleDateString('it-IT')} alle ore ${formatTime(train.saved_at_time)}
-            </td>
-            <td>
-                ${delayText}
-            </td>
-            <td>
-                <i class="fa-solid fa-circle-info fa-xl p-2" style="cursor: pointer; color: aqua"></i>
-                <span onclick="deleteTrain(${train.id})" style="cursor: pointer;"><i class="fa-regular fa-trash-can fa-lg p-2"></i></span>
-            </td>
-        `;
+                    <td style="color: #a30000;">
+                        <i class="fa-solid fa-train fa-xl"></i> Italo ${train.train_number}
+                    </td>
+                    <td>
+                        ${train.departure_station_description} <strong>${formatTime(train.departure_date)}</strong>
+                        <i class="fa-solid fa-arrow-right"></i>
+                        ${train.arrival_station_description} <strong>${formatTime(train.arrival_date)}</strong>
+                    </td>
+                    <td>
+                        Salvato il ${new Date(train.saved_at_date).toLocaleDateString('it-IT')} alle ore ${formatTime(train.saved_at_time)}
+                    </td>
+                    <td>
+                        ${delayText}
+                    </td>
+                    <td>
+                        <span onclick="deleteTrain(${train.id})" style="cursor: pointer;"><i class="fa-regular fa-trash-can fa-lg p-2"></i></span>
+                    </td>
+                `;
                 tableBody.appendChild(row);
             });
 
@@ -166,10 +249,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-        function refreshSavedTrainsData(filterDate = null) {
+        function refreshSavedTrainsData(filterDate = null, delayFilter = 'all') {
             let url = '/trains/saved';
+            const params = [];
             if (filterDate) {
-                url += `?date=${filterDate}`;
+                params.push(`date=${filterDate}`);
+            }
+            if (delayFilter !== 'all') {
+                params.push(`delay=${delayFilter}`);
+            }
+            if (params.length > 0) {
+                url += '?' + params.join('&');
             }
 
             fetch(url, {
@@ -178,61 +268,85 @@ document.addEventListener('DOMContentLoaded', function () {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Errore nella risposta dal server');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    totalTrains = data.trains;
-                    currentPage = 1; // Reset alla prima pagina quando si aggiorna la lista
-                    renderTable();
-                })
-                .catch(error => console.error('Errore nel fetch:', error));
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Errore nella risposta dal server');
+                }
+                return response.json();
+            })
+            .then(data => {
+                totalTrains = data.trains;
+                currentPage = 1;
+                renderTable();
+            })
+            .catch(error => console.error('Errore nel fetch:', error));
         }
 
-        // Event listener per il bottone di filtro
+        //todo Event listener per il bottone di filtro
         document.getElementById('filter-date-button').addEventListener('click', () => {
             const filterDate = document.getElementById('date-filter').value;
-            if (filterDate) {
-                refreshSavedTrainsData(filterDate);
-            } else {
-                refreshSavedTrainsData(); // Rimuove il filtro se la data non è selezionata
-            }
+            const delayFilter = document.getElementById('delay-filter').value;
+            refreshSavedTrainsData(filterDate, delayFilter);
         });
 
-        // Inizializza i dati all'avvio senza filtro
-        refreshSavedTrainsData();
 
-
-        // function refreshSavedTrainsData() {
-        //     fetch('/trains/saved', {
-        //         method: 'GET',
-        //         headers: {
-        //             'X-Requested-With': 'XMLHttpRequest'
-        //         }
-        //     })
-        //         .then(response => {
-        //             if (!response.ok) {
-        //                 throw new Error('Errore nella risposta dal server');
-        //             }
-        //             return response.json();
-        //         })
-        //         .then(data => {
-        //             totalTrains = data.trains;
-        //             renderTable();
-        //         })
-        //         .catch(error => console.error('Errore nel fetch:', error));
-        // }
-
-        // Event listener per il cambio di selezione delle righe per pagina
+        //todo Event listener per il cambio di selezione delle righe per pagina
         document.getElementById('rows-per-page').addEventListener('change', () => {
-            currentPage = 1; // Reset alla prima pagina quando si cambia il numero di righe
+            currentPage = 1;
             renderTable();
         });
         refreshSavedTrainsData();
 
+
+        //todo Event listener per il filtro di ritardo
+        document.getElementById('delay-filter').addEventListener('change', () => {
+            const filterDate = document.getElementById('date-filter').value;
+            const delayFilter = document.getElementById('delay-filter').value;
+            refreshSavedTrainsData(filterDate, delayFilter);
+        });
+
+        refreshSavedTrainsData();
+
+        //todo modale per i treni salvati
+        document.querySelector('#saved-trains-table-body').addEventListener('click', function (event) {
+            if (event.target && event.target.classList.contains('fa-circle-info')) {
+                const trainRow = event.target.closest('tr');
+                const trainNumber = trainRow.querySelector('td:first-child').textContent.trim().split(' ')[1];
+                showTrainDetails(trainNumber);
+            }
+        });
+
+        function showTrainDetails(trainNumber) {
+            fetch(`/trains/details/${trainNumber}`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.train) {
+                    const modalContent = document.getElementById('train-details-content');
+                    modalContent.innerHTML = `
+                        <h6>Treno ${data.train.train_number}</h6>
+                        <p><strong>Partenza:</strong> ${data.train.departure_station_description} alle ${data.train.departure_date}</p>
+                        <p><strong>Arrivo:</strong> ${data.train.arrival_station_description} alle ${data.train.arrival_date}</p>
+                        <h6>Fermate:</h6>
+                        <ul>
+                            ${data.train.stations.map(station => `
+                                <li>
+                                    ${station.location_description}: Arrivo previsto alle ${station.estimated_arrival_time}, Arrivo reale alle ${station.actual_arrival_time}
+                                    (Partenza prevista alle ${station.estimated_departure_time}, Partenza reale alle ${station.actual_departure_time})
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+                    var modal = new bootstrap.Modal(document.getElementById('trainDetailsModal'));
+                    modal.show();
+                }
+            })
+            .catch(error => console.error('Errore nel fetch dei dettagli:', error));
+        }
 
         //todo Funzione per cancellare
         window.deleteTrain = function (id) {
@@ -271,6 +385,160 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         setInterval(refreshSavedTrainsData, 60000);
-        refreshSavedTrainsData();
     }
 });
+//     const url = window.location.pathname;
+//     if (url === '/trains/saved') {
+
+//         let currentPage = 1;
+//         let totalTrains = [];
+
+//         function renderTable() {
+//             const rowsPerPage = parseInt(document.getElementById('rows-per-page').value, 10);
+//             const tableBody = document.getElementById('saved-trains-table-body');
+//             tableBody.innerHTML = '';
+
+//             const start = (currentPage - 1) * rowsPerPage;
+//             const end = start + rowsPerPage;
+//             const trainsToShow = totalTrains.slice(start, end);
+
+//             trainsToShow.forEach(train => {
+    //                 const delayAmount = train.delay_amount;
+//                 let delayText = '';
+
+//                 if (delayAmount < 0) {
+//                     delayText = '<i class="fa-solid fa-circle" style="color: green;"></i> In anticipo';
+//                 } else if (delayAmount < 10) {
+//                     delayText = '<i class="fa-solid fa-circle" style="color: green;"></i> In orario';
+//                 } else if (delayAmount !== null) {
+//                     delayText = `<i class="fa-solid fa-circle" style="color: red;"></i> Ritardo ${delayAmount} minuti`;
+//                 }
+
+//                 const formatTime = (time) => new Date(`1970-01-01T${time}Z`).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+
+//                 const row = document.createElement('tr');
+//                 row.innerHTML = `
+//                     <td style="color: #a30000;">
+//                         <i class="fa-solid fa-train fa-xl"></i> Italo ${train.train_number}
+//                     </td>
+//                     <td>
+//                         ${train.departure_station_description} <strong>${formatTime(train.departure_date)}</strong>
+//                         <i class="fa-solid fa-arrow-right"></i>
+//                         ${train.arrival_station_description} <strong>${formatTime(train.arrival_date)}</strong>
+//                     </td>
+//                     <td>
+//                         Salvato il ${new Date(train.saved_at_date).toLocaleDateString('it-IT')} alle ore ${formatTime(train.saved_at_time)}
+//                     </td>
+//                     <td>
+//                         ${delayText}
+//                     </td>
+//                     <td>
+//                         <i class="fa-solid fa-circle-info fa-xl p-2" style="cursor: pointer; color: aqua"></i>
+//                         <span onclick="deleteTrain(${train.id})" style="cursor: pointer;"><i class="fa-regular fa-trash-can fa-lg p-2"></i></span>
+//                     </td>
+//                 `;
+//                 tableBody.appendChild(row);
+//             });
+
+//             const totalPages = Math.ceil(totalTrains.length / rowsPerPage);
+//             document.getElementById('page-info').textContent = `Pagina ${currentPage} di ${totalPages}`;
+
+//             document.getElementById('prev-page').disabled = currentPage === 1;
+//             document.getElementById('next-page').disabled = currentPage === totalPages;
+//         }
+
+//         // Funzione per aggiornare i dati dei treni salvati
+//         function refreshSavedTrainsData(filterDate = null, delayFilter = 'all') {
+//             let url = '/trains/saved';
+//             const params = [];
+//             if (filterDate) {
+//                 params.push(`date=${filterDate}`);
+//             }
+//             if (delayFilter !== 'all') {
+//                 params.push(`delay=${delayFilter}`);
+//             }
+//             if (params.length > 0) {
+//                 url += '?' + params.join('&');
+//             }
+
+//             fetch(url, {
+//                 method: 'GET',
+//                 headers: {
+//                     'X-Requested-With': 'XMLHttpRequest'
+//                 }
+//             })
+//                 .then(response => {
+    //                     if (!response.ok) {
+//                         throw new Error('Errore nella risposta dal server');
+//                     }
+//                     return response.json();
+//                 })
+//                 .then(data => {
+    //                     totalTrains = data.trains;
+//                     currentPage = 1;
+//                     renderTable();
+//                 })
+//                 .catch(error => console.error('Errore nel fetch:', error));
+//         }
+
+//         // Event listener per il bottone di filtro
+//         document.getElementById('filter-date-button').addEventListener('click', () => {
+    //             const filterDate = document.getElementById('date-filter').value;
+//             const delayFilter = document.getElementById('delay-filter').value;
+//             refreshSavedTrainsData(filterDate, delayFilter);
+//         });
+
+//         // Event listener per il cambio di selezione delle righe per pagina
+//         document.getElementById('rows-per-page').addEventListener('change', () => {
+    //             currentPage = 1; // Reset alla prima pagina quando si cambia il numero di righe
+//             renderTable();
+//         });
+
+//         // Event listener per il filtro di ritardo
+//         document.getElementById('delay-filter').addEventListener('change', () => {
+    //             const filterDate = document.getElementById('date-filter').value;
+//             const delayFilter = document.getElementById('delay-filter').value;
+//             refreshSavedTrainsData(filterDate, delayFilter);
+//         });
+
+//         // Inizializza i dati all'avvio senza filtro
+//         refreshSavedTrainsData();
+
+//         // Funzione per cancellare un treno
+//         window.deleteTrain = function (id) {
+//             if (typeof id === 'undefined') {
+//                 console.error('ID del treno non definito.');
+//                 return;
+//             }
+//             fetch(`/trains/${id}`, {
+//                 method: 'DELETE',
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+//                 }
+//             })
+//                 .then(response => {
+    //                     if (!response.ok) {
+//                         return response.json().then(data => {
+    //                             console.error('Errore nella risposta del server:', data);
+//                             throw new Error(data.message || 'Errore nella cancellazione');
+//                         });
+//                     }
+//                     return response.json();
+//                 })
+//                 .then(data => {
+    //                     if (data.success) {
+//                         alert('Treno eliminato con successo');
+//                         refreshSavedTrainsData();
+//                     } else {
+//                         alert('Errore nella cancellazione del treno');
+//                     }
+//                 })
+//                 .catch(error => {
+    //                     console.error('Errore nella cancellazione:', error);
+//                 });
+//         };
+
+//         setInterval(refreshSavedTrainsData, 60000);
+//     }
+// });

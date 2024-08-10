@@ -127,6 +127,10 @@ class TrainController extends Controller
     }
 
 
+    // todo Funzione per salvare tutti i treni
+
+
+
     // todo Elenco treni salvati
     public function getSavedTrains(Request $request)
     {
@@ -136,6 +140,18 @@ class TrainController extends Controller
         if ($request->has('date')) {
             $date = $request->input('date');
             $query->whereDate('saved_at_date', $date);
+        }
+
+        //! funzione per fare il filtro del ritardo
+        if ($request->has('delay')) {
+            $delayFilter = $request->input('delay');
+            if ($delayFilter === 'anticipo') {
+                $query->where('delay_amount', '<', 0);
+            } elseif ($delayFilter === 'ok') {
+                $query->whereBetween('delay_amount', [0, 9]);
+            } elseif ($delayFilter === 'ritardo') {
+                $query->where('delay_amount', '>=', 10);
+            }
         }
 
         //! funzoine per ordinare i treni

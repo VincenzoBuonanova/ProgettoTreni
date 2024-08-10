@@ -11,6 +11,5 @@ Route::middleware(Cors::class)->group(function () {
     Route::get('/trains/refresh', [TrainController::class, 'refreshTrainsData'])->name('trains.refresh'); //funzione per il refresh
     Route::post('/trains/save', [TrainController::class, 'saveTrain'])->name('trains.save');
     Route::get('/trains/saved', [TrainController::class, 'getSavedTrains'])->name('trains.saved');
-    // Route::delete('/trains/{id}', [TrainController::class, 'deleteTrain']);
     Route::delete('/product/delete/{id}', [TrainController::class, 'deleteTrain'])->name('trains.delete');
 });
