@@ -86,14 +86,93 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-
 //! Script per la schermata treni salvati
 document.addEventListener('DOMContentLoaded', function () {
     const url = window.location.pathname;
     if (url === '/trains/saved') {
 
-        function refreshSavedTrainsData() {
-            fetch('/trains/saved', {
+        let currentPage = 1;
+        let totalTrains = [];
+
+        function renderTable() {
+            const rowsPerPage = parseInt(document.getElementById('rows-per-page').value, 10);
+            const tableBody = document.getElementById('saved-trains-table-body');
+            tableBody.innerHTML = '';
+
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const trainsToShow = totalTrains.slice(start, end);
+
+            trainsToShow.forEach(train => {
+                const delayAmount = train.delay_amount;
+                let delayText = '';
+
+                if (delayAmount < 0) {
+                    delayText = '<i class="fa-solid fa-circle" style="color: green;"></i> In anticipo';
+                } else if (delayAmount < 10) {
+                    delayText = '<i class="fa-solid fa-circle" style="color: green;"></i> In orario';
+                } else if (delayAmount !== null) {
+                    delayText = `<i class="fa-solid fa-circle" style="color: red;"></i> Ritardo ${delayAmount} minuti`;
+                }
+
+                const formatTime = (time) => new Date(`1970-01-01T${time}Z`).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+            <td style="color: #a30000;">
+                <i class="fa-solid fa-train fa-xl"></i> Italo ${train.train_number}
+            </td>
+            <td>
+                ${train.departure_station_description} <strong>${formatTime(train.departure_date)}</strong>
+                <i class="fa-solid fa-arrow-right"></i>
+                ${train.arrival_station_description} <strong>${formatTime(train.arrival_date)}</strong>
+            </td>
+            <td>
+                Salvato il ${new Date(train.saved_at_date).toLocaleDateString('it-IT')} alle ore ${formatTime(train.saved_at_time)}
+            </td>
+            <td>
+                ${delayText}
+            </td>
+            <td>
+                <i class="fa-solid fa-circle-info fa-xl p-2" style="cursor: pointer; color: aqua"></i>
+                <span onclick="deleteTrain(${train.id})" style="cursor: pointer;"><i class="fa-regular fa-trash-can fa-lg p-2"></i></span>
+            </td>
+        `;
+                tableBody.appendChild(row);
+            });
+
+            const totalPages = Math.ceil(totalTrains.length / rowsPerPage);
+            document.getElementById('page-info').textContent = `Pagina ${currentPage} di ${totalPages}`;
+
+            document.getElementById('prev-page').disabled = currentPage === 1;
+            document.getElementById('next-page').disabled = currentPage === totalPages;
+        }
+
+        //todo pulsanti di navigazione
+        document.getElementById('prev-page').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        });
+
+        document.getElementById('next-page').addEventListener('click', () => {
+            const rowsPerPage = parseInt(document.getElementById('rows-per-page').value, 10);
+            if (currentPage < Math.ceil(totalTrains.length / rowsPerPage)) {
+                currentPage++;
+                renderTable();
+            }
+        });
+
+
+
+        function refreshSavedTrainsData(filterDate = null) {
+            let url = '/trains/saved';
+            if (filterDate) {
+                url += `?date=${filterDate}`;
+            }
+
+            fetch(url, {
                 method: 'GET',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
@@ -106,54 +185,53 @@ document.addEventListener('DOMContentLoaded', function () {
                     return response.json();
                 })
                 .then(data => {
-                    const tableBody = document.getElementById('saved-trains-table-body');
-                    if (!tableBody) {
-                        console.error('Elemento con ID "saved-trains-table-body" non trovato.');
-                        return;
-                    }
-
-                    tableBody.innerHTML = '';
-
-                    data.trains.forEach(train => {
-                        const delayAmount = train.delay_amount;
-                        let delayText = '';
-
-                        if (delayAmount < 0) {
-                            delayText = '<i class="fa-solid fa-circle" style="color: green;"></i> In anticipo';
-                        } else if (delayAmount < 10) {
-                            delayText = '<i class="fa-solid fa-circle" style="color: green;"></i> In orario';
-                        } else if (delayAmount !== null) {
-                            delayText = `<i class="fa-solid fa-circle" style="color: red;"></i> Ritardo ${delayAmount} minuti`;
-                        }
-
-                        const formatTime = (time) => new Date(`1970-01-01T${time}Z`).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                <td style="color: #a30000;">
-                    <i class="fa-solid fa-train fa-xl"></i> Italo ${train.train_number}
-                </td>
-                <td>
-                    ${train.departure_station_description} <strong>${formatTime(train.departure_date)}</strong>
-                    <i class="fa-solid fa-arrow-right"></i>
-                    ${train.arrival_station_description} <strong>${formatTime(train.arrival_date)}</strong>
-                </td>
-                <td>
-                    Salvato il ${new Date(train.saved_at_date).toLocaleDateString('it-IT')} alle ore ${formatTime(train.saved_at_time)}
-                </td>
-                <td>
-                    ${delayText}
-                </td>
-                <td>
-                    <button>Dettagli</button>
-                    <span onclick="deleteTrain(${train.id})" style="cursor: pointer;"><i class="fa-regular fa-trash-can fa-lg"></i></span>
-                </td>
-            `;
-                        tableBody.appendChild(row);
-                    });
+                    totalTrains = data.trains;
+                    currentPage = 1; // Reset alla prima pagina quando si aggiorna la lista
+                    renderTable();
                 })
                 .catch(error => console.error('Errore nel fetch:', error));
         }
+
+        // Event listener per il bottone di filtro
+        document.getElementById('filter-date-button').addEventListener('click', () => {
+            const filterDate = document.getElementById('date-filter').value;
+            if (filterDate) {
+                refreshSavedTrainsData(filterDate);
+            } else {
+                refreshSavedTrainsData(); // Rimuove il filtro se la data non è selezionata
+            }
+        });
+
+        // Inizializza i dati all'avvio senza filtro
+        refreshSavedTrainsData();
+
+
+        // function refreshSavedTrainsData() {
+        //     fetch('/trains/saved', {
+        //         method: 'GET',
+        //         headers: {
+        //             'X-Requested-With': 'XMLHttpRequest'
+        //         }
+        //     })
+        //         .then(response => {
+        //             if (!response.ok) {
+        //                 throw new Error('Errore nella risposta dal server');
+        //             }
+        //             return response.json();
+        //         })
+        //         .then(data => {
+        //             totalTrains = data.trains;
+        //             renderTable();
+        //         })
+        //         .catch(error => console.error('Errore nel fetch:', error));
+        // }
+
+        // Event listener per il cambio di selezione delle righe per pagina
+        document.getElementById('rows-per-page').addEventListener('change', () => {
+            currentPage = 1; // Reset alla prima pagina quando si cambia il numero di righe
+            renderTable();
+        });
+        refreshSavedTrainsData();
 
 
         //todo Funzione per cancellare

@@ -101,19 +101,19 @@ class TrainController extends Controller
 
         $currentDate = now()->format('Y-m-d');
         $currentTime = now()->format('H:i');
-
         // dd($request->all());
+
         $train = Train::updateOrCreate(
             [
                 'train_number' => $data['TrainNumber'],
-                'departure_date' => $data['DepartureDate'],
+                'saved_at_date' => $currentDate,
             ],
             [
                 'departure_station_description' => $data['DepartureStationDescription'],
+                'departure_date' => $data['DepartureDate'],
                 'arrival_station_description' => $data['ArrivalStationDescription'],
                 'arrival_date' => $data['ArrivalDate'],
                 'delay_amount' => $data['DelayAmount'] ?? null,
-                'saved_at_date' => $currentDate,
                 'saved_at_time' => $currentTime,
                 ]
             );
@@ -130,8 +130,22 @@ class TrainController extends Controller
     // todo Elenco treni salvati
     public function getSavedTrains(Request $request)
     {
+        $query = Train::query();
+
+        //! funzione per fare il filtro sulla data
+        if ($request->has('date')) {
+            $date = $request->input('date');
+            $query->whereDate('saved_at_date', $date);
+        }
+
+        //! funzoine per ordinare i treni
+        $trains = $query->orderBy('saved_at_date', 'desc')
+        ->orderBy('departure_date', 'desc')
+        ->get();
+
         $response = Http::get('https://italoinviaggio.italotreno.it/api/TreniInCircolazioneService');
         $data = $response->json();
+
         if (isset($data['IsEmpty']) && $data['IsEmpty']) {
             $filePath = resource_path('views/TreniInCircolazioneServiceStatico.json');
             if (!file_exists($filePath)) {
@@ -140,12 +154,11 @@ class TrainController extends Controller
             $json = file_get_contents($filePath);
             $data = json_decode($json, true);
         }
-        if (isset($data['TrainSchedules'] )) {
+
+        if (isset($data['TrainSchedules'])) {
             $updatedTrains = collect($data['TrainSchedules'])->keyBy('TrainNumber');
-            $trains = Train::orderBy('saved_at_date', 'desc')
-            ->orderBy('departure_date', 'desc')
-            ->get()
-            ->map(function ($train) use ($updatedTrains) {
+
+            $trains = $trains->map(function ($train) use ($updatedTrains) {
                 $updatedTrain = $updatedTrains->get($train->train_number);
                 if ($updatedTrain) {
                     $train->delay_amount = $updatedTrain['Distruption']['DelayAmount'] ?? null;
@@ -153,26 +166,26 @@ class TrainController extends Controller
                 }
                 return $train;
             });
-            if ($request->ajax()) {
-                return response()->json([
-                    'trains' => $trains->map(function ($train) {
-                        return [
-                            'id' => $train->id,
-                            'train_number' => $train->train_number,
-                            'departure_station_description' => $train->departure_station_description,
-                            'departure_date' => $train->departure_date,
-                            'arrival_station_description' => $train->arrival_station_description,
-                            'arrival_date' => $train->arrival_date,
-                            'saved_at_date' => $train->saved_at_date,
-                            'saved_at_time' => $train->saved_at_time,
-                            'delay_amount' => $train->delay_amount
-                        ];
-                    })
-                ]);
-            }
-            return view('treni.saved', ['trains' => $trains]);
         }
-        return view('treni.saved', ['trains' => []]);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'trains' => $trains->map(function ($train) {
+                    return [
+                        'id' => $train->id,
+                        'train_number' => $train->train_number,
+                        'departure_station_description' => $train->departure_station_description,
+                        'departure_date' => $train->departure_date,
+                        'arrival_station_description' => $train->arrival_station_description,
+                        'arrival_date' => $train->arrival_date,
+                        'saved_at_date' => $train->saved_at_date,
+                        'saved_at_time' => $train->saved_at_time,
+                        'delay_amount' => $train->delay_amount
+                    ];
+                })
+            ]);
+        }
+        return view('treni.saved', ['trains' => $trains]);
     }
 
 
