@@ -126,11 +126,6 @@ class TrainController extends Controller
         );
     }
 
-
-    // todo Funzione per salvare tutti i treni
-
-
-
     // todo Elenco treni salvati
     public function getSavedTrains(Request $request)
     {

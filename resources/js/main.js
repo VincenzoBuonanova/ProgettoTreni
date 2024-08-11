@@ -2,6 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const url = window.location.pathname;
     if (url === '/trains') {
+
         function refreshTrainsData() {
             fetch('/trains/refresh')
             .then(response => response.json())
@@ -86,22 +87,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         //todo Funzione per salvare un treno
         window.saveTrain = function (train) {
-            // const trainPayload = {
-            //     TrainNumber: train.TrainNumber,
-            //     DepartureStationDescription: train.DepartureStationDescription,
-            //     DepartureDate: train.DepartureDate,
-            //     ArrivalStationDescription: train.ArrivalStationDescription,
-            //     ArrivalDate: train.ArrivalDate,
-            //     DelayAmount: train.Distruption.DelayAmount
-
-                const trainPayload = {
-                    TrainNumber: train.TrainNumber,
-                    DepartureStationDescription: train.DepartureStationDescription,
-                    DepartureDate: train.DepartureDate,
-                    ArrivalStationDescription: train.ArrivalStationDescription,
-                    ArrivalDate: train.ArrivalDate,
-                    DelayAmount: train.Distruption ? train.Distruption.DelayAmount : null
-                };
+            const trainPayload = {
+                TrainNumber: train.TrainNumber,
+                DepartureStationDescription: train.DepartureStationDescription,
+                DepartureDate: train.DepartureDate,
+                ArrivalStationDescription: train.ArrivalStationDescription,
+                ArrivalDate: train.ArrivalDate,
+                DelayAmount: train.Distruption ? train.Distruption.DelayAmount : null
+            };
 
             fetch('/trains/save', {
                 method: 'POST',
@@ -129,44 +122,66 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(error => {
                 console.error('Errore nel salvataggio:', error);
             });
-        }
+        };
+
+        //todo funzione per salvare tutti i treni
+        window.saveAllTrains = function () {
+            const tableBody = document.getElementById('trains-table-body');
+            const rows = tableBody.querySelectorAll('tr');
+            const savePromises = [];
+            let successCount = 0;
+
+            rows.forEach(row => {
+                // tentativo di approccio 3: constanti
+                const departureStationDescription = row.querySelector('td:nth-child(2)').childNodes[0].textContent.trim();
+                const arrivalStationDescription = row.querySelector('td:nth-child(2)').childNodes[4].textContent.trim();
+
+                const train = {
+                    TrainNumber: row.querySelector('td:nth-child(1)').textContent.trim().replace('Italo ', ''),
+                    DepartureStationDescription: departureStationDescription,
+                    DepartureDate: row.querySelector('td:nth-child(2)').querySelector('strong').textContent,
+                    ArrivalStationDescription: arrivalStationDescription,
+                    ArrivalDate: row.querySelector('td:nth-child(2)').querySelectorAll('strong')[1].textContent,
+                    DelayAmount: row.querySelector('td:nth-child(3)').textContent.includes('Ritardo')
+                        ? parseInt(row.querySelector('td:nth-child(3)').textContent.match(/\d+/)[0])
+                        : null
+                };
+
+                savePromises.push(
+                    fetch('/trains/save', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify(train)
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.text().then(text => {
+                                    throw new Error(`Errore nel salvataggio del treno: ${text}`);
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                successCount++;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Errore nel salvataggio:', error);
+                        })
+                );
+            });
+            Promise.all(savePromises).then(() => {
+                alert(`${successCount} treni salvati con successo`);
+            });
+        };
+
+        //todo evento del bottone "Salva tutti i treni"
+        document.querySelector('.save-all').addEventListener('click', saveAllTrains);
     }
-
-
-    //todo funzione per salvare tutti i treni
-    window.saveAllTrains = function () {
-        const tableBody = document.getElementById('trains-table-body');
-        const rows = tableBody.querySelectorAll('tr');
-
-        rows.forEach(row => {
-            const train = {
-                TrainNumber: row.querySelector('td:nth-child(1)').textContent.trim().replace('Italo ', ''),
-                DepartureStationDescription: row.querySelector('td:nth-child(2)').textContent.split(' ')[0],
-                DepartureDate: row.querySelector('td:nth-child(2)').querySelector('strong').textContent,
-                ArrivalStationDescription: row.querySelector('td:nth-child(2)').textContent.split(' ')[3],
-                ArrivalDate: row.querySelector('td:nth-child(2)').querySelectorAll('strong')[1].textContent,
-                DelayAmount: row.querySelector('td:nth-child(3)').textContent.includes('Ritardo')
-                    ? parseInt(row.querySelector('td:nth-child(3)').textContent.match(/\d+/)[0])
-                    : null
-
-                TrainNumber: train.TrainNumber,
-                DepartureStationDescription: train.DepartureStationDescription,
-                DepartureDate: train.DepartureDate,
-                ArrivalStationDescription: train.ArrivalStationDescription,
-                ArrivalDate: train.ArrivalDate,
-                DelayAmount: train.Distruption ? train.Distruption.DelayAmount : null
-            };
-
-            // Log per verificare i valori estratti
-            console.log('Train Data:', train);
-
-            saveTrain(train);
-        });
-    };
-
-
-    //todo evento del bottone "Salva tutti i treni"
-    document.querySelector('.save-all').addEventListener('click', saveAllTrains);
 });
 
 
