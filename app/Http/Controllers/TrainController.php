@@ -7,9 +7,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\TrainResource;
+
 
 class TrainController extends Controller
 {
+    // public function getTrains()
+    // {
+    //     $trains = Train::paginate(10); // Paginazione con 10 elementi per pagina
+    //     return TrainResource::collection($trains);
+    // }
+
+
     public function home()
     {
         return view('home');
@@ -36,7 +45,24 @@ class TrainController extends Controller
         $lastUpdate = $data['LastUpdate'] ?? 'N/A';
         $trains = array_map(function ($train) {
             $delayAmount = $train['Distruption']['DelayAmount'] ?? null;
-            return array_merge($train, ['DelayAmount' => $delayAmount]);
+            return [
+                'TrainNumber' => $train['TrainNumber'],
+                'DepartureStationDescription' => $train['DepartureStationDescription'],
+                'DepartureDate' => $train['DepartureDate'],
+                'ArrivalStationDescription' => $train['ArrivalStationDescription'],
+                'ArrivalDate' => $train['ArrivalDate'],
+                'DelayAmount' => $delayAmount,
+                'Stations' => array_map(function ($station) {
+                    return [
+                        'LocationDescription' => $station['LocationDescription'],
+                        'ActualDepartureTime' => $station['ActualDepartureTime'],
+                        'ActualArrivalTime' => $station['ActualArrivalTime'],
+                        'EstimatedDepartureTime' => $station['EstimatedDepartureTime'],
+                        'EstimatedArrivalTime' => $station['EstimatedArrivalTime'],
+                        'StationNumber' => $station['StationNumber'],
+                    ];
+                }, $train['Stations'] ?? []),
+            ];
         }, $data['TrainSchedules'] ?? []);
 
         return view('treni.index', [
@@ -66,8 +92,25 @@ class TrainController extends Controller
         if (isset($data['TrainSchedules']) && isset($data['LastUpdate'])) {
             $trains = array_map(function ($train) {
                 $delayAmount = $train['Distruption']['DelayAmount'] ?? null;
-                return array_merge($train, ['DelayAmount' => $delayAmount]);
-            }, $data['TrainSchedules']);
+                return [
+                    'TrainNumber' => $train['TrainNumber'],
+                    'DepartureStationDescription' => $train['DepartureStationDescription'],
+                    'DepartureDate' => $train['DepartureDate'],
+                    'ArrivalStationDescription' => $train['ArrivalStationDescription'],
+                    'ArrivalDate' => $train['ArrivalDate'],
+                    'DelayAmount' => $delayAmount,
+                    'Stations' => array_map(function ($station) {
+                        return [
+                            'LocationDescription' => $station['LocationDescription'],
+                            'ActualDepartureTime' => $station['ActualDepartureTime'],
+                            'ActualArrivalTime' => $station['ActualArrivalTime'],
+                            'EstimatedDepartureTime' => $station['EstimatedDepartureTime'],
+                            'EstimatedArrivalTime' => $station['EstimatedArrivalTime'],
+                            'StationNumber' => $station['StationNumber'],
+                        ];
+                    }, $train['Stations'] ?? []),
+                ];
+            }, $data['TrainSchedules'] ?? []);
 
             return response()->json([
                 'trains' => $trains,
