@@ -232,7 +232,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         ${delayText}
                     </td>
                     <td>
-                        <span onclick="deleteTrain(${train.id})" style="cursor: pointer;"><i class="fa-regular fa-trash-can fa-lg p-2"></i></span>
+                        <span onclick="deleteTrain(${train.id})" style="cursor: pointer;">
+                            <i class="fa-regular fa-trash-can fa-lg p-2"></i>
+                        </span>
                     </td>
                 `;
                 tableBody.appendChild(row);
@@ -327,7 +329,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
             console.log('ID del treno da eliminare:', id);
-            fetch(`/trains/${id}`, {
+            fetch(`/trains/delete/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
